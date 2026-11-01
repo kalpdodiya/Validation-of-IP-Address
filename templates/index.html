@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IP Address Validator — Computer Networks</title>
+  <meta name="description" content="Computer Networks IP Address Validator: Real-time IPv4 & IPv6 validation, class detection, subnetting, binary breakdown, and topology analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ══════════════════════════════════════════════
+       CSS RESET & DARK THEME PALETTE
+    ══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Dark Theme Backgrounds */
+      --bg-base:       #0b0a13;
+      --bg-card:       rgba(21, 19, 33, 0.82);
+      --bg-card-sub:   rgba(17, 16, 29, 0.75);
+      --bg-input:      #11101d;
+
+      /* Borders */
+      --border-card:   rgba(255, 255, 255, 0.08);
+      --border-input:  rgba(255, 255, 255, 0.12);
+      --border-row:    rgba(255, 255, 255, 0.06);
+
+      /* Accents */
+      --purple-main:   #8b5cf6;
+      --purple-grad:   linear-gradient(135deg, #7c3aed, #9333ea);
+      --purple-light:  #c084fc;
+      --purple-glow:   rgba(139, 92, 246, 0.25);
+
+      /* Status Colors */
+      --green-bg:      rgba(16, 46, 32, 0.65);
+      --green-border:  rgba(34, 197, 94, 0.3);
+      --green-badge:   rgba(34, 197, 94, 0.15);
+      --green-text:    #4ade80;
+      --green-solid:   #22c55e;
+
+      --red-bg:        rgba(69, 10, 10, 0.65);
+      --red-border:    rgba(239, 68, 68, 0.3);
+      --red-badge:     rgba(239, 68, 68, 0.15);
+      --red-text:      #f87171;
+      --red-solid:     #ef4444;
+
+      /* Text Colors */
+      --text-white:    #ffffff;
+      --text-main:     #f3f4f6;
+      --text-muted:    #9ca3af;
+      --text-dim:      #6b7280;
+
+      --radius-card:   20px;
+      --radius-btn:    12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text-main);
+      background-color: var(--bg-base);
+      position: relative;
+    }
+
+    /* ══════════════════════════════════════════════
+       ATMOSPHERIC DARK BACKGROUND & PURPLE GLOWS
+    ══════════════════════════════════════════════ */
+    .bg-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(124, 58, 237, 0.2) 0%, transparent 45%),
+        radial-gradient(circle at 86% 82%, rgba(147, 51, 234, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 50% 30%, rgba(79, 70, 229, 0.08) 0%, transparent 60%),
+        #0b0a13;
+    }
+
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto; padding: 48px 20px 80px;
+    }
+
+    /* ══════════════════════════════════════════════
+       TOP BRANDING
+    ══════════════════════════════════════════════ */
+    .top-branding {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; margin-bottom: 22px;
+      animation: fadeIn 0.6s ease both;
+    }
+    .brand-line {
+      width: 44px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15));
+    }
+    .brand-line.right {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), transparent);
+    }
+    .brand-icon {
+      display: flex; align-items: center; justify-content: center;
+      color: #c084fc;
+    }
+    .brand-text {
+      font-size: 0.8rem; font-weight: 500;
+      color: #9ca3af; letter-spacing: 0.04em;
+    }
+
+    /* ══════════════════════════════════════════════
+       HERO HEADING & SUBTITLE
+    ══════════════════════════════════════════════ */
+    .hero { text-align: center; margin-bottom: 26px; }
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 2.7rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-white);
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .h1-accent {
+      background: linear-gradient(135deg, #a855f7, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+
+
+    /* ══════════════════════════════════════════════
+       SEARCH INPUT CARD (MATCHING IMAGE 2)
+    ══════════════════════════════════════════════ */
+    .search-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-card);
+      padding: 16px 20px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      margin-bottom: 22px;
+    }
+    .search-row {
+      display: flex; gap: 12px; align-items: center;
+    }
+    .search-input-wrap {
+      flex: 1; position: relative;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: var(--radius-btn);
+      padding: 12px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem; font-weight: 500;
+      color: var(--text-white);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .search-input::placeholder {
+      color: var(--text-dim);
+      font-family: 'Poppins', sans-serif;
+      font-weight: 400;
+      font-size: 0.88rem;
+    }
+    .search-input:focus {
+      border-color: var(--purple-main);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.22);
+    }
+    .btn-validate {
+      padding: 12px 28px;
+      background: var(--purple-grad);
+      border: none;
+      border-radius: var(--radius-btn);
+      color: var(--text-white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-validate:hover {
+      opacity: 0.93;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(124, 58, 237, 0.55);
+    }
+    .btn-validate:active { transform: translateY(0); }
+    .btn-validate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ══════════════════════════════════════════════
+       QUICK EXAMPLES SECTION (MATCHING IMAGE 1)
+       Directly below the search card!
+    ══════════════════════════════════════════════ */
+    .chips-section {
+      text-align: center;
+      margin: 0 auto 28px;
+      max-width: 820px;
+    }
+    .chips-label {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 12px;
+    }
+    .chips-row {
+      display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    }
+    .chip {
+      padding: 7px 15px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.73rem;
+      color: #d1d5db; cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+    .chip:hover {
+      background: rgba(139, 92, 246, 0.22);
+      border-color: rgba(168, 85, 247, 0.45);
+      color: #ffffff; transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+    }
+    .chip-tag {
+      font-family: 'Poppins', sans-serif; font-size: 0.62rem; font-weight: 500;
+      background: rgba(255, 255, 255, 0.08); padding: 2px 7px;
+      border-radius: 6px; margin-left: 6px;
+      color: #9ca3af; vertical-align: middle;
+    }
+
+    /* ══════════════════════════════════════════════
+       STATUS BANNER
+    ══════════════════════════════════════════════ */
+    .status-banner {
+      display: flex; align-items: center; justify-content: space-between;
+      border-radius: 14px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.35s ease;
+    }
+    .status-banner.valid {
+      background: var(--green-bg);
+      border: 1px solid var(--green-border);
+    }
+    .status-banner.invalid {
+      background: var(--red-bg);
+      border: 1px solid var(--red-border);
+    }
+    .sb-left {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .sb-icon {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 800; color: #fff;
+      flex-shrink: 0;
+    }
+    .valid .sb-icon { background: var(--green-solid); }
+    .invalid .sb-icon { background: var(--red-solid); }
+
+    .sb-title {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-white);
+    }
+    .sb-sub {
+      font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;
+    }
+    .sb-badge {
+      padding: 4px 14px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    .valid .sb-badge {
+      background: var(--green-badge);
+      border: 1px solid var(--green-border);
+      color: var(--green-text);
+    }
+    .invalid .sb-badge {
+      background: var(--red-badge);
+      border: 1px solid var(--red-border);
+      color: var(--red-text);
+    }
+
+    /* ══════════════════════════════════════════════
+       CARDS & GRID LAYOUT
+    ══════════════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-card);
+      padding: 22px 24px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(20px);
+      position: relative; overflow: hidden;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 20px 52px rgba(0, 0, 0, 0.6); }
+
+    /* Colored left accent vertical lines on cards */
+    .card::after {
+      content: ''; position: absolute;
+      left: 0; top: 18%; bottom: 18%;
+      width: 3.5px; border-radius: 0 4px 4px 0;
+    }
+    .card.rose::after   { background: linear-gradient(180deg, #f43f5e, #fb923c); }
+    .card.violet::after { background: linear-gradient(180deg, #8b5cf6, #ec4899); }
+    .card.amber::after  { background: linear-gradient(180deg, #f59e0b, #f43f5e); }
+    .card.sky::after    { background: linear-gradient(180deg, #0ea5e9, #8b5cf6); }
+    .card.mint::after   { background: linear-gradient(180deg, #10b981, #0ea5e9); }
+    .card.multi::after  { background: linear-gradient(180deg, #f43f5e, #f59e0b, #8b5cf6, #10b981); }
+
+    /* Card Header */
+    .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .card-ico {
+      width: 38px; height: 38px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .ico-rose   { background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.25); }
+    .ico-violet { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.25); }
+    .ico-amber  { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.25); }
+    .ico-sky    { background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.25); }
+    .ico-mint   { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.25); }
+
+    .card-title { font-size: 0.9rem; font-weight: 700; color: var(--text-white); }
+    .card-sub   { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* IP Hero Strip */
+    .ip-strip { text-align: center; padding: 18px 0 10px; }
+    .ip-big {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #f43f5e, #c084fc, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      word-break: break-all;
+      margin-bottom: 14px;
+    }
+    .ip-tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+    /* Section Label */
+    .sec-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-dim); margin: 24px 0 14px;
+    }
+    .sec-label::before {
+      content: ''; width: 18px; height: 2.5px; border-radius: 99px;
+      background: linear-gradient(90deg, #a855f7, #c084fc);
+      display: block;
+    }
+
+    .g4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .g1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+    .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 740px) {
+      .g4, .g2 { grid-template-columns: 1fr; }
+    }
+
+    /* Key-Value Rows */
+    .kv { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-row); font-size: 0.84rem; }
+    .kv:last-child { border-bottom: none; padding-bottom: 0; }
+    .kv:first-child { padding-top: 0; }
+    .kv-k { color: var(--text-muted); font-weight: 400; flex-shrink: 0; }
+    .kv-v { font-family: 'JetBrains Mono', monospace; color: var(--text-main); text-align: right; word-break: break-all; font-weight: 500; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; letter-spacing: .03em; font-family: 'Poppins', sans-serif; }
+    .bg-rose    { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+    .bg-violet  { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .bg-amber   { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .bg-sky     { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
+    .bg-mint    { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .bg-red     { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .bg-slate   { background: rgba(255, 255, 255, 0.06); color: #d1d5db; border: 1px solid rgba(255, 255, 255, 0.1); }
+    .bg-orange  { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+
+    /* Class Track (IPv4) */
+    .class-track { display: flex; gap: 6px; margin-top: 14px; }
+    .class-seg {
+      flex: 1; padding: 8px 3px; border-radius: 10px; text-align: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.25s;
+    }
+    .class-seg.lit {
+      background: rgba(139, 92, 246, 0.25);
+      border-color: #a855f7;
+      box-shadow: 0 0 14px rgba(168, 85, 247, 0.3);
+      transform: scale(1.04);
+    }
+    .cs-l { font-weight: 800; font-size: 0.95rem; display: block; color: var(--text-muted); }
+    .cs-r { font-size: 0.54rem; color: var(--text-dim); margin-top: 2px; display: block; }
+    .class-seg.lit .cs-l { color: #d8b4fe; }
+    .class-seg.lit .cs-r { color: #c084fc; }
+
+    /* Progress bar */
+    .prog-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; }
+    .prog-track  { height: 8px; background: rgba(255, 255, 255, 0.06); border-radius: 99px; overflow: hidden; }
+    .prog-fill   { height: 100%; border-radius: 99px; background: var(--purple-grad); transition: width 0.7s ease; }
+    .prog-meta   { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 3px; }
+
+    /* Visibility Pills */
+    .vis-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .vis-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 14px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 500;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-dim);
+      transition: all 0.25s;
+    }
+    .vis-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); }
+    .vis-pill.on {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(168, 85, 247, 0.45);
+      color: var(--text-white); font-weight: 600;
+    }
+    .vis-pill.on .vis-dot {
+      background: #a855f7; box-shadow: 0 0 8px #a855f7;
+      animation: pulse 2s infinite;
+    }
+
+    /* Binary Representation */
+    .bin-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .octet-box {
+      flex: 1; min-width: 90px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px; padding: 12px 6px; text-align: center;
+    }
+    .oct-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+    .oct-bits  { font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; letter-spacing: 1.5px; color: #c084fc; font-weight: 600; }
+    .oct-dec   { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+    .full-bin {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    .fb-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+    .fb-bits  { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; letter-spacing: 1.8px; color: #d8b4fe; font-weight: 600; word-break: break-all; line-height: 1.6; }
+
+    /* Hex Groups (IPv6) */
+    .hex-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    @media (max-width: 600px) { .hex-grid { grid-template-columns: repeat(2, 1fr); } }
+    .hex-block {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px; padding: 10px 6px; text-align: center;
+    }
+    .hb-idx { font-size: 0.55rem; text-transform: uppercase; font-weight: 700; color: var(--text-dim); margin-bottom: 4px; }
+    .hb-hex { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: #fb7185; }
+    .hb-bin { font-family: 'JetBrains Mono', monospace; font-size: 0.52rem; color: #c084fc; margin-top: 3px; word-break: break-all; letter-spacing: 0.5px; }
+
+    /* Scope Hierarchy (IPv6) */
+    .scope-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .scope-pill {
+      padding: 7px 15px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-dim);
+      transition: all 0.25s;
+    }
+    .scope-pill.on {
+      background: rgba(139, 92, 246, 0.22);
+      border-color: #a855f7;
+      color: #d8b4fe; font-weight: 600;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+    }
+
+    /* ══════════════════════════════════════════════
+       RECENT VALIDATIONS
+    ══════════════════════════════════════════════ */
+    #history-section { display: none; margin-top: 28px; }
+    .hist-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .hist-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.08em; }
+    #clear-hist { font-size: 0.74rem; color: #f87171; background: none; border: none; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; }
+    #clear-hist:hover { text-decoration: underline; }
+    .hist-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hist-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px; cursor: pointer;
+      font-size: 0.8rem; transition: all 0.2s;
+    }
+    .hist-item:hover {
+      background: rgba(139, 92, 246, 0.18);
+      border-color: rgba(168, 85, 247, 0.4);
+      transform: translateY(-1px);
+    }
+    .hist-ip  { font-family: 'JetBrains Mono', monospace; color: var(--text-white); font-size: 0.78rem; }
+    .hist-ver { font-size: 0.62rem; font-weight: 700; background: rgba(255, 255, 255, 0.08); padding: 1px 5px; border-radius: 4px; color: var(--text-muted); }
+
+
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.25);opacity:.7;} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
+    }
+    .shake { animation: shake 0.4s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-6px);} 40%,80%{transform:translateX(6px);} }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Dark Background Canvas -->
+  <div class="bg-canvas"></div>
+
+  <div class="wrapper">
+
+    <!-- ── TOP BRANDING ───────────────────────── -->
+    <div class="top-branding">
+      <span class="brand-line"></span>
+      <span class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="3"></circle>
+          <circle cx="6" cy="18" r="3"></circle>
+          <circle cx="18" cy="18" r="3"></circle>
+          <line x1="12" y1="8" x2="6" y2="15"></line>
+          <line x1="12" y1="8" x2="18" y2="15"></line>
+          <line x1="6" y1="18" x2="18" y2="18"></line>
+        </svg>
+      </span>
+      <span class="brand-text">Computer Networks</span>
+      <span class="brand-line right"></span>
+    </div>
+
+    <!-- ── HERO HEADING & SUBTITLE ────────────── -->
+    <section class="hero">
+      <h1>IP Address <span class="h1-accent">Validator</span></h1>
+      <p class="hero-desc">Validate IPv4 and IPv6 addresses</p>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         MAIN IP VALIDATOR
+    ══════════════════════════════════════════════ -->
+    <div id="panel-validator">
+
+      <!-- Search Input Card (Matching Image 2) -->
+      <div class="search-card">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <input id="ip-input" class="search-input" type="text" placeholder="e.g. 192.168.1.1 or 2001:db8::1" autocomplete="off" spellcheck="false" />
+          </div>
+          <button id="validate-btn" class="btn-validate">
+            <div class="spinner" id="btn-spin"></div>
+            <span id="btn-text">Validate</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Examples Section (DIRECTLY BELOW SEARCH CARD - MATCHING IMAGE 1) -->
+      <div class="chips-section">
+        <div class="chips-label">QUICK EXAMPLES</div>
+        <div class="chips-row" id="chips-row"></div>
+      </div>
+
+      <!-- Status Banner -->
+      <div id="status-banner" class="status-banner valid" style="display:none;">
+        <div class="sb-left">
+          <div class="sb-icon" id="sb-icon">✓</div>
+          <div>
+            <div class="sb-title" id="sb-title">Valid IP Address</div>
+            <div class="sb-sub"  id="sb-sub"></div>
+          </div>
+        </div>
+        <div class="sb-badge" id="sb-badge">IPv4</div>
+      </div>
+
+      <!-- Complete Results Container (ALL DETAILS DIRECTLY DISPLAYED WITHOUT DROPDOWN) -->
+      <div id="results" style="display:none;"></div>
+
+      <!-- Recent Validations History -->
+      <div id="history-section" style="display:none;">
+        <div class="hist-header">
+          <span class="hist-label">Recent Validations</span>
+          <button id="clear-hist">Clear all</button>
+        </div>
+        <div class="hist-list" id="hist-list"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       JAVASCRIPT APPLICATION LOGIC
+  ══════════════════════════════════════════════ -->
+  <script>
+    const API = '/api';
+    let hist = JSON.parse(localStorage.getItem('ip_dark_hist') || '[]');
+
+    // Elements
+    const ipInput          = document.getElementById('ip-input');
+    const valBtn           = document.getElementById('validate-btn');
+    const btnSpin          = document.getElementById('btn-spin');
+    const btnText          = document.getElementById('btn-text');
+    const banner           = document.getElementById('status-banner');
+    const sbIcon           = document.getElementById('sb-icon');
+    const sbTitle          = document.getElementById('sb-title');
+    const sbSub            = document.getElementById('sb-sub');
+    const sbBadge          = document.getElementById('sb-badge');
+    const resultsEl        = document.getElementById('results');
+    const chipsRow         = document.getElementById('chips-row');
+    const histSection      = document.getElementById('history-section');
+    const histList         = document.getElementById('hist-list');
+
+    /* ══════════ LOAD EXAMPLES ════════════════ */
+    async function loadExamples() {
+      try {
+        const r = await fetch(API + '/examples');
+        const d = await r.json();
+        chipsRow.innerHTML = '';
+        [...d.ipv4, ...d.ipv6].forEach(ex => {
+          const c = document.createElement('button');
+          c.className = 'chip';
+          c.innerHTML = ex.ip + ' <span class="chip-tag">' + ex.label + '</span>';
+          c.addEventListener('click', () => {
+            ipInput.value = ex.ip;
+            doValidate();
+          });
+          chipsRow.appendChild(c);
+        });
+      } catch (e) {
+        console.error('Failed to load examples:', e);
+      }
+    }
+
+    /* ══════════ VALIDATE IP ══════════════════ */
+    async function doValidate() {
+      const ip = ipInput.value.trim();
+      if (!ip) {
+        ipInput.classList.add('shake');
+        setTimeout(() => ipInput.classList.remove('shake'), 450);
+        return;
+      }
+      setLoading(true);
+      resetView();
+
+      try {
+        const r = await fetch(API + '/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ip })
+        });
+        const d = await r.json();
+        setLoading(false);
+        renderResults(d, ip);
+        addHist(ip, d);
+      } catch (e) {
+        setLoading(false);
+        showBanner(false, 'Server Unreachable', 'Ensure Flask server is running on port 5000.');
+      }
+    }
+
+    function resetView() {
+      banner.style.display = 'none';
+      resultsEl.style.display = 'none';
+      resultsEl.innerHTML = '';
+      histSection.style.display = 'none';
+    }
+
+    function showBanner(ok, title, sub, badgeText) {
+      banner.className = ok ? 'status-banner valid' : 'status-banner invalid';
+      sbIcon.textContent = ok ? '✓' : '✕';
+      sbTitle.textContent = title;
+      sbSub.textContent = sub || '';
+      sbSub.style.display = sub ? 'block' : 'none';
+      sbBadge.textContent = badgeText || (ok ? 'Valid' : 'Invalid');
+      banner.style.display = 'flex';
+    }
+
+    /* ══════════ RENDER RESULTS (ALL CARDS SHOWN DIRECTLY) ════════ */
+    function renderResults(d, raw) {
+      if (!d.valid) {
+        showBanner(false, 'Invalid IP: "' + raw + '"', d.error || 'The entered string is not a valid IPv4 or IPv6 address.', 'Invalid');
+        return;
+      }
+
+      if (d.version === 'IPv4') {
+        showBanner(true, 'Valid IPv4 Address', raw + ' · ' + d.specialType + ' · Class ' + d.ipClass, 'IPv4');
+        renderIPv4(d);
+      } else {
+        showBanner(true, 'Valid IPv6 Address', raw + ' · ' + d.addressType, 'IPv6');
+        renderIPv6(d);
+      }
+    }
+
+    /* ──────────── IPv4 DETAILS ──────────── */
+    function renderIPv4(d) {
+      const cl = d.ipClass.charAt(0);
+      const pct = d.networkBits > 0 ? Math.round((d.networkBits / 32) * 100) : 0;
+      const classRanges = { 'A': '1–126', 'B': '128–191', 'C': '192–223', 'D': '224–239', 'E': '240–255' };
+
+      resultsEl.innerHTML = `
+        <!-- IP HERO STRIP -->
+        <div class="card multi" style="margin-bottom:16px;">
+          <div class="ip-strip">
+            <div class="ip-big">${d.ip}</div>
+            <div class="ip-tags">
+              ${badge('IPv4', 'bg-slate')}
+              ${badge('Class ' + d.ipClass, classBadge(cl))}
+              ${badge(d.specialType, typeBadge(d.specialType))}
+              ${d.isPrivate ? badge('RFC 1918', 'bg-amber') : ''}
+              ${d.isPublic  ? badge('Internet Routable', 'bg-mint') : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- ANALYSIS SECTION LABEL -->
+        <div class="sec-label">Analysis</div>
+
+        <!-- 2x2 GRID OF CORE CARDS -->
+        <div class="g4">
+
+          <!-- 1. GENERAL INFO -->
+          <div class="card rose">
+            <div class="card-head">
+              <div class="card-ico ico-rose">📋</div>
+              <div><div class="card-title">General Info</div><div class="card-sub">Core properties</div></div>
+            </div>
+            ${kv('IP Address', mono(d.ip, '#fb7185'))}
+            ${kv('Version', badge('IPv4', 'bg-slate'))}
+            ${kv('Total Bits', '32 bits')}
+            ${kv('Octets', '4')}
+            ${kv('Separator', 'Dot ( . )')}
+          </div>
+
+          <!-- 2. IP CLASS -->
+          <div class="card violet">
+            <div class="card-head">
+              <div class="card-ico ico-violet">📊</div>
+              <div><div class="card-title">IP Class</div><div class="card-sub">Address classification</div></div>
+            </div>
+            ${kv('Class', badge('Class ' + d.ipClass, classBadge(cl)))}
+            ${kv('Range', d.classRange)}
+            ${kv('Network Bits', d.networkBits > 0 ? d.networkBits : 'N/A')}
+            ${kv('Host Bits', d.hostBits > 0 ? d.hostBits : 'N/A')}
+            ${kv('Leading Bit(s)', d.leadingBits || '0')}
+            <div class="class-track">
+              ${['A', 'B', 'C', 'D', 'E'].map(l => `<div class="class-seg ${l === cl ? 'lit' : ''}"><span class="cs-l">${l}</span><span class="cs-r">${classRanges[l]}</span></div>`).join('')}
+            </div>
+          </div>
+
+          <!-- 3. SUBNET & CIDR -->
+          <div class="card amber">
+            <div class="card-head">
+              <div class="card-ico ico-amber">🔢</div>
+              <div><div class="card-title">Subnet &amp; CIDR</div><div class="card-sub">Network addressing</div></div>
+            </div>
+            ${kv('Subnet Mask', mono(d.defaultSubnet))}
+            ${kv('CIDR Notation', mono(d.cidrNotation, '#fbbf24'))}
+            ${kv('Network Addr', mono(d.networkAddress))}
+            ${kv('Broadcast Addr', mono(d.broadcastAddress))}
+            ${kv('First Host', mono(d.firstUsableHost))}
+            ${kv('Last Host', mono(d.lastUsableHost))}
+            ${kv('Max Hosts', d.maxHosts > 0 ? d.maxHosts.toLocaleString() : 'N/A')}
+            ${d.networkBits > 0 ? `
+            <div style="margin-top:14px;">
+              <div class="prog-labels"><span>Network (${d.networkBits} bits)</span><span>Host (${d.hostBits} bits)</span></div>
+              <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+              <div class="prog-meta"><span>0%</span><span>100%</span></div>
+            </div>` : ''}
+          </div>
+
+          <!-- 4. VISIBILITY -->
+          <div class="card sky">
+            <div class="card-head">
+              <div class="card-ico ico-sky">🔒</div>
+              <div><div class="card-title">Visibility</div><div class="card-sub">Network scope</div></div>
+            </div>
+            <div class="vis-row">
+              ${vp('Public', d.isPublic)}
+              ${vp('Private', d.isPrivate)}
+              ${vp('Loopback', d.isLoopback)}
+              ${vp('Link-Local', d.isLinkLocal)}
+              ${vp('Broadcast', d.isBroadcast)}
+            </div>
+            ${d.isPrivate ? kv('Private Range', d.privateRange) : ''}
+            ${kv('Internet Routable', d.isPublic ? badge('Yes', 'bg-mint') : badge('No', 'bg-red'))}
+            ${kv('RFC 1918', d.isPrivate ? badge('Yes', 'bg-amber') : badge('No', 'bg-slate'))}
+            ${kv('Special Purpose', (d.isLoopback || d.isBroadcast || d.isLinkLocal) ? badge('Yes', 'bg-orange') : badge('No', 'bg-slate'))}
+          </div>
+
+        </div>
+
+        <!-- 5. BINARY REPRESENTATION (FULL WIDTH) -->
+        <div class="g1">
+          <div class="card mint">
+            <div class="card-head">
+              <div class="card-ico ico-mint">🔣</div>
+              <div><div class="card-title">Binary Representation</div><div class="card-sub">32-bit breakdown — each octet as 8-bit binary</div></div>
+            </div>
+            <div class="bin-row">
+              ${d.octets.map((o, i) => `
+                <div class="octet-box">
+                  <div class="oct-label">OCTET ${i + 1}</div>
+                  <div class="oct-bits">${d.binaryOctets[i]}</div>
+                  <div class="oct-dec">${o}</div>
+                </div>`).join('')}
+            </div>
+            <div class="full-bin">
+              <div class="fb-label">FULL 32-BIT BINARY</div>
+              <div class="fb-bits">${d.binaryRepresentation}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      resultsEl.style.display = 'block';
+    }
+
+    /* ──────────── IPv6 DETAILS ──────────── */
+    function renderIPv6(d) {
+      const scopes = ['Node', 'Link', 'Site', 'Organization/Site', 'Global'];
+
+      resultsEl.innerHTML = `
+        <!-- IP HERO STRIP -->
+        <div class="card multi" style="margin-bottom:16px;">
+          <div class="ip-strip">
+            <div class="ip-big" style="font-size:clamp(1.1rem,3.2vw,1.9rem);">${d.ip}</div>
+            <div class="ip-tags">
+              ${badge('IPv6', 'bg-violet')}
+              ${badge(d.addressType, 'bg-orange')}
+              ${badge('Scope: ' + d.scope, 'bg-slate')}
+              ${d.isCompressed ? badge(':: Compressed', 'bg-amber') : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- ANALYSIS SECTION LABEL -->
+        <div class="sec-label">Analysis</div>
+
+        <!-- 2 COLUMNS: GENERAL INFO & ADDRESS TYPE -->
+        <div class="g2">
+
+          <!-- 1. GENERAL INFO -->
+          <div class="card rose">
+            <div class="card-head">
+              <div class="card-ico ico-rose">📋</div>
+              <div><div class="card-title">General Info</div><div class="card-sub">Core properties</div></div>
+            </div>
+            ${kv('Version', badge('IPv6', 'bg-violet'))}
+            ${kv('Total Bits', '128 bits')}
+            ${kv('Groups', '8 × 16-bit hex')}
+            ${kv('Compressed', d.isCompressed ? badge('Yes (::)', 'bg-amber') : badge('No', 'bg-slate'))}
+            ${kv('Prefix Length', d.prefixLength)}
+            ${kv('Scope', d.scope)}
+          </div>
+
+          <!-- 2. ADDRESS TYPE -->
+          <div class="card violet">
+            <div class="card-head">
+              <div class="card-ico ico-violet">🏷️</div>
+              <div><div class="card-title">Address Type</div><div class="card-sub">IPv6 classification</div></div>
+            </div>
+            ${kv('Type', badge(d.addressType, 'bg-orange'))}
+            ${kv('Loopback',      d.ip === '::1' ? badge('Yes', 'bg-amber') : badge('No', 'bg-slate'))}
+            ${kv('Multicast',     d.addressType === 'Multicast' ? badge('Yes', 'bg-orange') : badge('No', 'bg-slate'))}
+            ${kv('Link-Local',    d.addressType.includes('Link-Local') ? badge('Yes', 'bg-amber') : badge('No', 'bg-slate'))}
+            ${kv('ULA (Private)', d.addressType.includes('Unique Local') ? badge('Yes', 'bg-amber') : badge('No', 'bg-slate'))}
+            ${kv('Global Unicast',d.addressType === 'Global Unicast' || d.isPublic ? badge('Yes', 'bg-mint') : badge('No', 'bg-slate'))}
+            ${kv('Tunneling',     d.addressType.includes('Tunnel') ? badge('Yes', 'bg-orange') : badge('No', 'bg-slate'))}
+          </div>
+
+        </div>
+
+        <!-- 3. ADDRESS FORMS -->
+        <div class="g1">
+          <div class="card amber">
+            <div class="card-head">
+              <div class="card-ico ico-amber">📐</div>
+              <div><div class="card-title">Address Forms</div><div class="card-sub">Compressed vs full expanded</div></div>
+            </div>
+            ${kv('Compressed', mono(d.ip, '#fb7185'))}
+            ${kv('Full Expanded', mono(d.expanded, '#c084fc'))}
+            <div style="margin-top:14px;" class="full-bin">
+              <div class="fb-label">128-BIT BINARY (GROUPED BY 16)</div>
+              <div class="fb-bits">${d.binaryRepresentation}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 16-BIT HEX GROUPS -->
+        <div class="g1">
+          <div class="card sky">
+            <div class="card-head">
+              <div class="card-ico ico-sky">🔢</div>
+              <div><div class="card-title">16-bit Hex Groups</div><div class="card-sub">All 8 groups with binary representation</div></div>
+            </div>
+            <div class="hex-grid">
+              ${d.groups.map((g, i) => `
+                <div class="hex-block">
+                  <div class="hb-idx">GROUP ${i + 1}</div>
+                  <div class="hb-hex">${g.toUpperCase()}</div>
+                  <div class="hb-bin">${(d.binaryGroups[i] || '0000000000000000').match(/.{4}/g).join(' ')}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. SCOPE HIERARCHY -->
+        <div class="g1">
+          <div class="card mint">
+            <div class="card-head">
+              <div class="card-ico ico-mint">🌍</div>
+              <div><div class="card-title">Scope Hierarchy</div><div class="card-sub">IPv6 reachability level</div></div>
+            </div>
+            <div class="scope-row">
+              ${scopes.map(s => `<div class="scope-pill ${d.scope === s || d.scope.includes(s) ? 'on' : ''}">${s}</div>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+      resultsEl.style.display = 'block';
+    }
+
+    /* ══════════ HELPERS ══════════════════════ */
+    function kv(k, v)     { return '<div class="kv"><span class="kv-k">' + k + '</span><span class="kv-v">' + v + '</span></div>'; }
+    function badge(t, c)  { return '<span class="badge ' + c + '">' + t + '</span>'; }
+    function mono(t, col) { return '<span style="font-family:\'JetBrains Mono\',monospace;font-size:0.8rem;font-weight:600;' + (col ? 'color:' + col : '') + '">' + t + '</span>'; }
+    function vp(l, on)    { return '<div class="vis-pill ' + (on ? 'on' : '') + '"><div class="vis-dot"></div>' + l + '</div>'; }
+    function classBadge(l) { return { A: 'bg-rose', B: 'bg-violet', C: 'bg-sky', D: 'bg-amber', E: 'bg-red' }[l] || 'bg-slate'; }
+    function typeBadge(t)  { return { Public: 'bg-mint', Private: 'bg-amber', Loopback: 'bg-sky', Broadcast: 'bg-red', 'APIPA / Link-Local': 'bg-orange' }[t] || 'bg-slate'; }
+
+    /* ══════════ HISTORY ══════════════════════ */
+    function addHist(ip, d) {
+      hist = hist.filter(h => h.ip !== ip).slice(0, 8);
+      hist.unshift({ ip, valid: d.valid, version: d.version || '?' });
+      localStorage.setItem('ip_dark_hist', JSON.stringify(hist));
+      renderHist();
+    }
+    function renderHist() {
+      if (!hist.length || resultsEl.style.display === 'none') {
+        histSection.style.display = 'none';
+        return;
+      }
+      histSection.style.display = 'block';
+      histList.innerHTML = hist.map(h => `
+        <div class="hist-item" onclick="useHist('${h.ip}')">
+          <span>${h.valid ? '✓' : '✕'}</span>
+          <span class="hist-ip">${h.ip}</span>
+          <span class="hist-ver">${h.version}</span>
+        </div>
+      `).join('');
+    }
+    function useHist(ip) {
+      ipInput.value = ip;
+      doValidate();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.getElementById('clear-hist').addEventListener('click', () => {
+      hist = [];
+      localStorage.removeItem('ip_dark_hist');
+      renderHist();
+    });
+
+    function setLoading(on) {
+      valBtn.disabled = on;
+      btnSpin.style.display = on ? 'block' : 'none';
+      btnText.textContent = on ? '' : 'Validate';
+    }
+
+    valBtn.addEventListener('click', doValidate);
+    ipInput.addEventListener('keydown', e => { if (e.key === 'Enter') doValidate(); });
+    ipInput.addEventListener('input', () => {
+      if (!ipInput.value.trim()) resetView();
+    });
+
+    // Clean Initial Load: input is empty with placeholder; details display only when validated
+    ipInput.value = '';
+    loadExamples();
+    resetView();
+  </script>
+</body>
+</html>

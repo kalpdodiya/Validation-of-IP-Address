@@ -1,0 +1,4 @@
+# Computer Networks Project - IP Address Validator
+# ZERO external dependencies required!
+# Runs entirely on Python's built-in standard library (Python 3.8+).
+# No 'pip install' needed. Simply run: python app.py
